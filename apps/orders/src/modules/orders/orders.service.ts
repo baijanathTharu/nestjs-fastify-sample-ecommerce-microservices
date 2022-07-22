@@ -1,32 +1,31 @@
 import { Injectable } from '@nestjs/common';
+import { v4 } from 'uuid';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 
 @Injectable()
 export class OrdersService {
   orders: Array<{
-    id: number;
+    id: string;
     name: string;
-  }> = [
-    {
-      id: 1,
-      name: 'Order 1',
-    },
-    {
-      id: 2,
-      name: 'Order 2',
-    },
-  ];
+  }> = [];
 
   create(createOrderDto: CreateOrderDto) {
-    return 'This action adds a new order';
+    const newOrder = {
+      id: v4(),
+      name: createOrderDto.name,
+    };
+    this.orders.push(newOrder);
+    return {
+      success: true,
+    };
   }
 
   findAll() {
     return this.orders;
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.orders.filter((order) => order.id === id)[0];
   }
 
@@ -34,7 +33,7 @@ export class OrdersService {
     return `This action updates a #${id} order`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     const newOrders = this.orders.filter((order) => order.id !== id);
     this.orders = newOrders;
     return {
