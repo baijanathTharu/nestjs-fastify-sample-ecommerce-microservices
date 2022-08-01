@@ -29,21 +29,41 @@ async function bootstrap() {
   const host = configService.get('RABBITMQ_HOST');
   const queueName = configService.get('RABBITMQ_QUEUE_NAME');
 
-  await app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.RMQ,
-    options: {
-      urls: [`amqp://${user}:${password}@${host}`],
-      queue: queueName,
-      queueOptions: {
-        durable: true,
+  const appM = await NestFactory.createMicroservice<MicroserviceOptions>(
+    AppModule,
+    {
+      transport: Transport.RMQ,
+      options: {
+        urls: [`amqp://${user}:${password}@${host}`],
+        queue: queueName,
+        queueOptions: {
+          durable: false,
+        },
       },
-    },
-  });
+    }
+    // new FastifyAdapter({
+    //   logger: true,
+    // })
+  );
+
+  // await app.connectMicroservice<MicroserviceOptions>({
+  // transport: Transport.RMQ,
+  // options: {
+  //   urls: [`amqp://${user}:${password}@${host}`],
+  //   queue: queueName,
+  //   queueOptions: {
+  //     durable: true,
+  //   },
+  // },
+  // });
+
+  await app.startAllMicroservices();
 
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
 
   const port = process.env.ORDERS_PORT || 3333;
+  await appM.listen();
   await app.listen(port);
 
   Logger.log(
