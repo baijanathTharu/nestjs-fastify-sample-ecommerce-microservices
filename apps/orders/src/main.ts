@@ -9,6 +9,8 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
 
 import { AppModule } from './app/app.module';
 
@@ -19,6 +21,24 @@ async function bootstrap() {
       logger: true,
     })
   );
+
+  const configService = app.get(ConfigService);
+
+  const user = configService.get('RABBITMQ_USER');
+  const password = configService.get('RABBITMQ_PASSWORD');
+  const host = configService.get('RABBITMQ_HOST');
+  const queueName = configService.get('RABBITMQ_QUEUE_NAME');
+
+  await app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: [`amqp://${user}:${password}@${host}`],
+      queue: queueName,
+      queueOptions: {
+        durable: true,
+      },
+    },
+  });
 
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
